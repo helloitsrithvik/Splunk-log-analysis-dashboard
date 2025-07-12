@@ -1,0 +1,28 @@
+# Purchase count by category
+index=main sourcetype="access_combined_wcookie" action=purchase
+| stats count by categoryId
+
+# Top 10 products by purchases
+index=main sourcetype="access_combined_wcookie" action=purchase
+| top productId limit=10
+
+
+# Time-based purchase trend
+index=main sourcetype="access_combined_wcookie" action=purchase
+| timechart span=1h count
+
+# Revenue by product using lookup
+index=main sourcetype="access_combined_wcookie" action=purchase
+| lookup Prices.csv productId OUTPUT product_name, sale_price
+| stats sum(sale_price) as revenue by product_name
+
+# Revenue filter using dashboard token
+index=main sourcetype="access_combined_wcookie" action=purchase
+| lookup Prices.csv productId OUTPUT product_name, sale_price
+| stats sum(sale_price) as revenue by product_name
+| search product_name="$tok_product_name$"
+
+# Suspicious login activity
+index=main sourcetype="access_combined_wcookie" action=login
+| stats count by clientip
+| where count > 20
